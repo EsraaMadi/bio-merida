@@ -11,7 +11,7 @@ from transformers.trainer_utils import HPSearchBackend, default_compute_objectiv
 
 from . import logging
 from .integrations import default_hp_search_backend, is_optuna_available, run_hp_search_optuna
-from .modeling import SupConLoss, sentence_pairs_generation, sentence_pairs_generation_multilabel
+from .modeling import SupConLoss, sequence_pairs_generation, sequence_pairs_generation_multilabel
 from .utils import BestRun, default_hp_space_optuna
 
 
@@ -44,11 +44,11 @@ class BitFitTrainer:
         loss_class (`nn.Module`, *optional*, defaults to `CosineSimilarityLoss`):
             The loss function to use for contrastive training.
         num_iterations (`int`, *optional*, defaults to `20`):
-            The number of iterations to generate sentence pairs for.
+            The number of iterations to generate sequence pairs for.
             This argument is ignored if triplet loss is used.
             It is only used in conjunction with `CosineSimilarityLoss`.
         num_epochs (`int`, *optional*, defaults to `1`):
-            The number of epochs to train the Sentence Transformer body for.
+            The number of epochs to train the Bio Transformer body for.
         learning_rate (`float`, *optional*, defaults to `2e-5`):
             The learning rate to use for contrastive training.
         batch_size (`int`, *optional*, defaults to `16`):
@@ -272,7 +272,7 @@ class BitFitTrainer:
 
         Args:
             num_epochs (`int`, *optional*):
-                Temporary change the number of epochs to train the Sentence Transformer body/head for.
+                Temporary change the number of epochs to train the Bio Transformer body/head for.
                 If ignore, will use the value given in initialization.
             batch_size (`int`, *optional*):
                 Temporary change the batch size to use for contrastive training or logistic regression.
@@ -319,7 +319,7 @@ class BitFitTrainer:
         learning_rate = learning_rate or self.learning_rate
 
         if not self.model.has_differentiable_head or self._freeze:
-            # sentence-transformers adaptation
+            # bio-transformers adaptation
             if self.loss_class in [
                 losses.BatchAllTripletLoss,
                 losses.BatchHardTripletLoss,
@@ -351,11 +351,11 @@ class BitFitTrainer:
 
                 for _ in range(self.num_iterations):
                     if self.model.multi_target_strategy is not None:
-                        train_examples = sentence_pairs_generation_multilabel(
+                        train_examples = sequence_pairs_generation_multilabel(
                             np.array(x_train), np.array(y_train), train_examples
                         )
                     else:
-                        train_examples = sentence_pairs_generation(
+                        train_examples = sequence_pairs_generation(
                             np.array(x_train), np.array(y_train), train_examples
                         )
 
