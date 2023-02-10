@@ -62,6 +62,19 @@ def load_data_splits(
     return train_splits, test_split
 
 
+def default_hp_space_optuna(trial) -> Dict[str, Any]:
+    from transformers.integrations import is_optuna_available
+
+    assert is_optuna_available(), "This function needs Optuna installed: `pip install optuna`"
+    return {
+        "learning_rate": trial.suggest_float("learning_rate", 1e-6, 1e-4, log=True),
+        "num_epochs": trial.suggest_int("num_epochs", 1, 5),
+        "num_iterations": trial.suggest_categorical("num_iterations", [5, 10, 20]),
+        "seed": trial.suggest_int("seed", 1, 40),
+        "batch_size": trial.suggest_categorical("batch_size", [4, 8, 16, 32, 64]),
+    }
+    
+
 def load_data_splits_multilabel(dataset: str, sample_sizes: List[int]) -> Tuple[DatasetDict, Dataset]:
     """Loads a dataset from the Hugging Face Hub and returns the test split and few-shot training splits."""
     print(f"\n\n\n============== {dataset} ============")
