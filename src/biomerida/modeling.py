@@ -222,7 +222,7 @@ class BitFitModel(PyTorchModelHubMixin):
 
     def __init__(
         self,
-        model_body: Optional[SentenceTransformer] = None,
+        model_body = None,
         model_head: Optional[Union[BitFitHead, LogisticRegression]] = None,
         multi_target_strategy: Optional[str] = None,
         l2_weight: float = 1e-2,
