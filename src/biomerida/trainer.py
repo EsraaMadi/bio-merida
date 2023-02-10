@@ -57,7 +57,7 @@ class BitFitTrainer:
             Random seed that will be set at the beginning of training. To ensure reproducibility across runs, use the
             [`~SetTrainer.model_init`] function to instantiate the model if it has some randomly initialized parameters.
         column_mapping (`Dict[str, str]`, *optional*):
-            A mapping from the column names in the dataset to the column names expected by the model. The expected format is a dictionary with the following format: {"text_column_name": "text", "label_column_name: "label"}.
+            A mapping from the column names in the dataset to the column names expected by the model. The expected format is a dictionary with the following format: {"sequence_column_name": "sequence", "label_column_name: "label"}.
         use_amp (`bool`, *optional*, defaults to `False`):
             Use Automatic Mixed Precision (AMP). Only for Pytorch >= 1.6.0
         warmup_proportion (`float`, *optional*, defaults to `0.1`):
@@ -134,7 +134,7 @@ class BitFitTrainer:
         """
         Validates the provided column mapping against the dataset.
         """
-        required_columns = {"text", "label"}
+        required_columns = {"sequence", "label"}
         column_names = set(dataset.column_names)
         if self.column_mapping is None and not required_columns.issubset(column_names):
             raise ValueError(
@@ -308,7 +308,7 @@ class BitFitTrainer:
             logger.info("Applying column mapping to training dataset")
             train_dataset = self._apply_column_mapping(self.train_dataset, self.column_mapping)
 
-        x_train = train_dataset["text"]
+        x_train = train_dataset["sequence"]
         y_train = train_dataset["label"]
         if self.loss_class is None:
             logger.warning("No `loss_class` detected! Using `CosineSimilarityLoss` as the default.")
@@ -327,7 +327,7 @@ class BitFitTrainer:
                 losses.BatchHardSoftMarginTripletLoss,
                 SupConLoss,
             ]:
-                train_examples = [InputExample(texts=[text], label=label) for text, label in zip(x_train, y_train)]
+                train_examples = [InputExample(texts=[sequence], label=label) for sequence, label in zip(x_train, y_train)]
                 train_data_sampler = SentenceLabelDataset(train_examples, samples_per_label=self.samples_per_label)
 
                 batch_size = min(batch_size, len(train_data_sampler))
@@ -408,7 +408,7 @@ class BitFitTrainer:
             logger.info("Applying column mapping to evaluation dataset")
             eval_dataset = self._apply_column_mapping(self.eval_dataset, self.column_mapping)
 
-        x_test = eval_dataset["text"]
+        x_test = eval_dataset["sequence"]
         y_test = eval_dataset["label"]
 
         logger.info("***** Running evaluation *****")
